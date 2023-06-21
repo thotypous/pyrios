@@ -30,6 +30,7 @@ import (
 	"io/ioutil"
 	"math/big"
 	"net/http"
+	"os"
 	"regexp"
 	"strings"
 
@@ -628,7 +629,17 @@ func (vote *Ballot) ExtractResult(e *Election) Result {
 func GetJSON(addr string, v interface{}) ([]byte, error) {
 	var err error
 	var jsonData []byte
-	resp, err := http.Get(addr)
+
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", addr, nil)
+	if err != nil {
+		glog.Errorf("Could not create request: %s\n", err)
+		return nil, err
+	}
+
+	req.Header.Set("Cookie", "sessionid=" + os.Getenv("HELIOS_SESSIONID"))
+
+	resp, err := client.Do(req)
 	if err != nil {
 		glog.Errorf("Could not get data from the Helios server: %s\n", err)
 		return nil, err
